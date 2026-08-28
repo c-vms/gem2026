@@ -284,6 +284,7 @@
     border-top:1px solid var(--rule);
     display:flex;
     justify-content:flex-end;
+    align-items:center;
   }
 
   .pdf-link{
@@ -300,6 +301,14 @@
     padding:7px 14px;
   }
   .pdf-link:hover{ background:var(--accent-soft); }
+
+  @keyframes cardHighlight{
+    0%{ box-shadow:0 0 0 3px var(--focus); }
+    100%{ box-shadow:var(--shadow); }
+  }
+  .card.linked-highlight{
+    animation:cardHighlight 2s ease-out;
+  }
 
   .empty-state{
     text-align:center;
@@ -395,9 +404,21 @@ populateSelect(filterSession, uniqueSorted(ABSTRACTS.map(a => a['Session'])));
 
 totalEl.textContent = ABSTRACTS.length;
 
+function slugify(str){
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 function renderCard(item){
   const card = document.createElement('article');
   card.className = 'card';
+
+  const idx = ABSTRACTS.indexOf(item);
+  card.id = `card-${idx}-${slugify(item['Presenter'])}`;
 
   const pdfHref = item['File'] ? encodeURIComponent(item['File']) : '';
 
@@ -421,7 +442,9 @@ function renderCard(item){
         </div>
       </div>
     </div>
-    ${item['File'] ? `<div class="card-footer"><a class="pdf-link" href="${pdfHref}" download>⇩ Download PDF</a></div>` : ''}
+    <div class="card-footer">
+      ${item['File'] ? `<a class="pdf-link" href="${pdfHref}" download>⇩ Download PDF</a>` : ''}
+    </div>
   `;
 
   card.querySelector('.card-head').addEventListener('click', () => {
@@ -490,6 +513,21 @@ clearBtn.addEventListener('click', () => {
 });
 
 applyFilters();
+
+// Deep-linking: if the URL has a #card-… hash, scroll to that card, open it,
+// and briefly highlight it so it's obvious which one was linked.
+function goToLinkedCard(){
+  const id = decodeURIComponent(location.hash.slice(1));
+  if(!id) return;
+  const target = document.getElementById(id);
+  if(!target) return;
+  target.classList.add('open');
+  target.classList.add('linked-highlight');
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => target.classList.remove('linked-highlight'), 2000);
+}
+window.addEventListener('load', goToLinkedCard);
+window.addEventListener('hashchange', goToLinkedCard);
 </script>
 
 </body>
