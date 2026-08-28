@@ -362,7 +362,7 @@
   <header class="page">
     <div class="title-row">
       <h1>Abstracts</h1>
-      <a class="zip-link" href="abstracts.zip" download>⇩ Download all abstracts (.zip)</a>
+      <a class="zip-link" href="abstracts.zip" download>⇩ Download abstracts book</a>
     </div>
     <p class="page-sub">Browse, search and filter submitted abstracts. Click a card to read the full abstract, or click to download the abstract as PDF.</p>
   </header>
@@ -472,7 +472,10 @@ function renderCard(item){
 
   card.querySelector('.link-btn').addEventListener('click', (e) => {
     e.stopPropagation();
-    const url = `${location.origin}${location.pathname}#${card.id}`;
+    // Links are generated for the public abstracts.html page, not this
+    // admin file — swap just the filename, keep the same folder/path.
+    const publicPath = location.pathname.replace(/[^/]*$/, 'abstracts.html');
+    const url = `${location.origin}${publicPath}#${card.id}`;
     const btn = e.currentTarget;
     const reset = () => { btn.textContent = '🔗 Copy link'; };
     navigator.clipboard.writeText(url).then(() => {
