@@ -431,12 +431,33 @@ function slugify(str){
     .slice(0, 60);
 }
 
+// Stable per-abstract IDs based on presenter name only — NOT on row position,
+// so links don't break if the spreadsheet is reordered or grows. In the rare
+// case two abstracts share a presenter name, ties are broken by title text
+// (not by row order), so the assignment stays stable even if rows move.
+const cardIds = new Map();
+(function assignCardIds(){
+  const bySlug = new Map();
+  ABSTRACTS.forEach(item => {
+    const slug = slugify(item['Presenter']) || 'presenter';
+    if(!bySlug.has(slug)) bySlug.set(slug, []);
+    bySlug.get(slug).push(item);
+  });
+  bySlug.forEach((items, slug) => {
+    if(items.length === 1){
+      cardIds.set(items[0], `card-${slug}`);
+    } else {
+      const sorted = [...items].sort((a,b) => (a['Title']||'').localeCompare(b['Title']||''));
+      sorted.forEach((item, i) => cardIds.set(item, `card-${slug}-${i+1}`));
+    }
+  });
+})();
+
 function renderCard(item){
   const card = document.createElement('article');
   card.className = 'card';
 
-  const idx = ABSTRACTS.indexOf(item);
-  card.id = `card-${idx}-${slugify(item['Presenter'])}`;
+  card.id = cardIds.get(item);
 
   const pdfHref = item['File'] ? encodeURIComponent(item['File']) : '';
 
