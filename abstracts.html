@@ -445,6 +445,17 @@ const cardIds = new Map();
   });
 })();
 
+// Poster board numbers: sequential, in the same order posters already appear
+// on the page, for easy in-room location. Purely a display label — doesn't
+// affect card links, filtering, or sorting.
+const posterNumbers = new Map();
+(function assignPosterNumbers(){
+  let n = 0;
+  ABSTRACTS.forEach(item => {
+    if(item['Status'] === 'Poster') posterNumbers.set(item, ++n);
+  });
+})();
+
 function renderCard(item){
   const card = document.createElement('article');
   card.className = 'card';
@@ -462,7 +473,7 @@ function renderCard(item){
         ${item['Presenter Email'] ? `<p class="card-email">${item['Presenter Email']}</p>` : ''}
       </div>
       <div class="tags">
-        ${item['Status'] ? `<span class="tag tag-status status-${item['Status'].toLowerCase()}">${item['Status']}</span>` : ''}
+        ${item['Status'] ? `<span class="tag tag-status status-${item['Status'].toLowerCase()}">${item['Status'] === 'Poster' ? `Poster ${posterNumbers.get(item)}` : item['Status']}</span>` : ''}
         ${item['Session'] ? `<span class="tag tag-session">Session: ${item['Session']}</span>` : ''}
       </div>
     </div>
